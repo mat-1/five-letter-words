@@ -1,7 +1,20 @@
 [package]
+edition = "2021"
 name = "five-letter-words"
 version = "0.1.0"
-edition = "2021"
 
 [dependencies]
 rayon = "1.5"
+
+[dev-dependencies]
+criterion = {version = "^0.3.6", features = ["html_reports"]}
+
+[profile.release]
+debug = true
+
+[profile.bench]
+debug = true
+
+[[bench]]
+harness = false
+name = "my_benchmark"

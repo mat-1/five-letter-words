@@ -1,55 +1,20 @@
-use rayon::iter::{
-    IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
-};
+use five_letter_words::{get_results, word_to_num};
 use std::collections::{BTreeSet, HashSet};
 
 const WORDS: &str = include_str!("wordle-words.txt");
+// const WORDS: &str = include_str!("smaller.txt");
 
 fn main() {
     let words: HashSet<&str> = WORDS.lines().collect();
     let packed_words: BTreeSet<u32> = words.iter().copied().flat_map(word_to_num).collect();
     let packed_words: Vec<u32> = packed_words.into_iter().collect();
+    // let packed_words: [u32; 5183] = packed_words.try_into().unwrap();
+
     println!(
         "found {} unique sets of 5 letters that appear in words",
         packed_words.len()
     );
-    let results: BTreeSet<(u32, u32, u32, u32, u32)> = packed_words
-        .par_iter()
-        .copied()
-        .enumerate()
-        .flat_map(|(i1, w1)| {
-            let mut results: BTreeSet<(u32, u32, u32, u32, u32)> = BTreeSet::new();
-            let ti = i1 + 1;
-            let wi = w1;
-            for (i2, w2) in packed_words[ti..].iter().copied().enumerate() {
-                if (wi & w2) != 0 {
-                    continue;
-                }
-                let ti = ti + i2;
-                let wi = wi | w2;
-                for (i3, w3) in packed_words[ti..].iter().copied().enumerate() {
-                    if (wi & w3) != 0 {
-                        continue;
-                    }
-                    let ti = ti + i3;
-                    let wi = wi | w3;
-                    for (i4, w4) in packed_words[ti..].iter().copied().enumerate() {
-                        if (wi & w4) != 0 {
-                            continue;
-                        }
-                        let ti = ti + i4;
-                        let wi = wi | w4;
-                        for w5 in packed_words[ti..].iter() {
-                            if (wi & w5) == 0 {
-                                results.insert((w1, w2, w3, w4, *w5));
-                            }
-                        }
-                    }
-                }
-            }
-            results.into_par_iter()
-        })
-        .collect();
+    let results = get_results(&packed_words);
 
     println!(
         "{} five word anagram groups with no overlapping letters found",
@@ -68,18 +33,6 @@ fn main() {
             }
         }
     }
-}
-
-fn word_to_num(word: &str) -> Option<u32> {
-    let mut res = 0;
-    for c in word.bytes() {
-        let letter_bit = 1 << (c - b'a');
-        if (res & letter_bit) != 0 {
-            return None;
-        }
-        res |= letter_bit;
-    }
-    Some(res)
 }
 
 fn get_words_for_num<'a>(num: u32, words: &'a HashSet<&'a str>) -> impl Iterator<Item = &'a str> {
