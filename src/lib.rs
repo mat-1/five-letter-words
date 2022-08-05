@@ -1,6 +1,6 @@
-// use rayon::iter::{
-//     IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
-// };
+use rayon::iter::{
+    IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
+};
 use std::collections::BTreeSet;
 
 pub fn get_results(packed_words: &[u32]) -> BTreeSet<(u32, u32, u32, u32, u32)> {
